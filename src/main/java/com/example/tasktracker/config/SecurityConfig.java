@@ -22,10 +22,11 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             "/auth/**",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/h2-console/**"
+            "/v3/api-docs/**",     
+            "/v3/api-docs.yaml",   
+            "/swagger-ui/**",      
+            "/swagger-ui.html",    
+            "/h2-console/**" 
     };
 
     @Bean
@@ -36,7 +37,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().authenticated()       
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -38,10 +38,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        jwt = authHeader.substring(7); // "Bearer " is 7 characters
+        jwt = authHeader.substring(7); 
         userEmail = jwtService.extractUsername(jwt);
 
-        // Check if user is not already authenticated
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
             if (jwtService.isTokenValid(jwt, userDetails)) {
@@ -51,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // Update SecurityContext
+                
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }

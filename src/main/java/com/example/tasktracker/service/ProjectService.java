@@ -7,8 +7,12 @@ import java.util.List;
 
 public interface ProjectService {
     ProjectResponseDto createProject(CreateProjectRequestDto requestDto, User owner);
+
     List<ProjectResponseDto> getAllProjects();
+    
     ProjectResponseDto getProjectById(Long id);
+    
     ProjectResponseDto updateProject(Long id, CreateProjectRequestDto requestDto);
+    
     void deleteProject(Long id);
 }

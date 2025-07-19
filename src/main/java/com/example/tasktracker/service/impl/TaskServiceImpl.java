@@ -34,7 +34,6 @@ public class TaskServiceImpl implements TaskService {
         User currentUser = securityUtils.getCurrentUser();
         Project project = findProjectById(requestDto.getProjectId());
 
-        // Security Check: Only the project owner (MANAGER) can create tasks
         if (!project.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the project owner can create tasks.");
         }
@@ -42,7 +41,6 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskMapper.toModel(requestDto);
         task.setProject(project);
 
-        // If a user is assigned, fetch and set the User entity
         if (requestDto.getAssignedUserId() != null) {
             User assignedUser = findUserById(requestDto.getAssignedUserId());
             task.setAssignedUser(assignedUser);
@@ -54,7 +52,6 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskResponseDto> getAllTasksByProjectId(Long projectId, TaskStatus status, TaskPriority priority, Pageable pageable) {
-        // Here we use our custom specification for filtering
         Specification<Task> spec = TaskSpecification.build(projectId, status, priority);
         return taskRepository.findAll(spec, pageable).map(taskMapper::toDto);
     }
@@ -71,24 +68,21 @@ public class TaskServiceImpl implements TaskService {
         User currentUser = securityUtils.getCurrentUser();
         Task task = findTaskById(taskId);
 
-        // Security Check: Only the project owner (MANAGER) can update task details
         if (!task.getProject().getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the project owner can update task details.");
         }
 
-        // Update fields if they are provided in the request
         if (requestDto.getTitle() != null) task.setTitle(requestDto.getTitle());
         if (requestDto.getDescription() != null) task.setDescription(requestDto.getDescription());
         if (requestDto.getStatus() != null) task.setStatus(requestDto.getStatus());
         if (requestDto.getPriority() != null) task.setPriority(requestDto.getPriority());
         if (requestDto.getDueDate() != null) task.setDueDate(requestDto.getDueDate());
 
-        // Handle re-assignment
         if (requestDto.getAssignedUserId() != null) {
             User assignedUser = findUserById(requestDto.getAssignedUserId());
             task.setAssignedUser(assignedUser);
         } else {
-            task.setAssignedUser(null); // Allow un-assigning a task
+            task.setAssignedUser(null); 
         }
 
         Task updatedTask = taskRepository.save(task);
@@ -101,7 +95,6 @@ public class TaskServiceImpl implements TaskService {
         User currentUser = securityUtils.getCurrentUser();
         Task task = findTaskById(taskId);
 
-        // Security Check: Only the user assigned to the task can change its status
         if (task.getAssignedUser() == null || !task.getAssignedUser().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the assigned user can update the task status.");
         }
@@ -117,14 +110,12 @@ public class TaskServiceImpl implements TaskService {
         User currentUser = securityUtils.getCurrentUser();
         Task task = findTaskById(taskId);
 
-        // Security Check: Only the project owner (MANAGER) can delete tasks
         if (!task.getProject().getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the project owner can delete tasks.");
         }
         taskRepository.delete(task);
     }
 
-    // Helper methods to reduce code duplication
     private Task findTaskById(Long taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskId));

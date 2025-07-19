@@ -38,7 +38,7 @@ class TaskServiceImplTest {
     @Mock
     private TaskMapper taskMapper;
     @Mock
-    private SecurityUtils securityUtils; // We must mock our security utility
+    private SecurityUtils securityUtils; 
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -60,20 +60,20 @@ class TaskServiceImplTest {
 
         project = new Project();
         project.setId(10L);
-        project.setOwner(manager); // The manager owns the project
+        project.setOwner(manager); 
 
         task = new Task();
         task.setId(100L);
         task.setTitle("Test Task");
         task.setProject(project);
-        task.setAssignedUser(assignedUser); // The task is assigned to the USER
+        task.setAssignedUser(assignedUser); 
     }
 
     @Test
     @DisplayName("Create Task - Success by Project Owner")
     void createTask_WhenUserIsProjectOwner_ShouldCreateTask() {
-        // Arrange
-        when(securityUtils.getCurrentUser()).thenReturn(manager); // The manager is logged in
+        
+        when(securityUtils.getCurrentUser()).thenReturn(manager); 
         when(projectRepository.findById(anyLong())).thenReturn(Optional.of(project));
         when(taskMapper.toModel(any())).thenReturn(new Task());
         when(taskRepository.save(any(Task.class))).thenReturn(task);
@@ -81,7 +81,7 @@ class TaskServiceImplTest {
         CreateTaskRequestDto requestDto = new CreateTaskRequestDto();
         requestDto.setProjectId(project.getId());
 
-        // Act & Assert
+        
         assertDoesNotThrow(() -> taskService.createTask(requestDto));
         verify(taskRepository).save(any(Task.class));
     }
@@ -89,14 +89,14 @@ class TaskServiceImplTest {
     @Test
     @DisplayName("Create Task - Failure by Non-Owner")
     void createTask_WhenUserIsNotProjectOwner_ShouldThrowAccessDenied() {
-        // Arrange
-        when(securityUtils.getCurrentUser()).thenReturn(assignedUser); // A different user is logged in
+        
+        when(securityUtils.getCurrentUser()).thenReturn(assignedUser); 
         when(projectRepository.findById(anyLong())).thenReturn(Optional.of(project));
         
         CreateTaskRequestDto requestDto = new CreateTaskRequestDto();
         requestDto.setProjectId(project.getId());
 
-        // Act & Assert
+        
         AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> taskService.createTask(requestDto)
@@ -107,15 +107,14 @@ class TaskServiceImplTest {
     @Test
     @DisplayName("Update Task Status - Success by Assigned User")
     void updateTaskStatus_WhenUserIsAssigned_ShouldUpdateStatus() {
-        // Arrange
-        when(securityUtils.getCurrentUser()).thenReturn(assignedUser); // The ASSIGNED user is logged in
+        
+        when(securityUtils.getCurrentUser()).thenReturn(assignedUser); 
         when(taskRepository.findById(anyLong())).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
 
         UpdateTaskStatusRequestDto requestDto = new UpdateTaskStatusRequestDto();
         requestDto.setStatus(TaskStatus.IN_PROGRESS);
 
-        // Act & Assert
         assertDoesNotThrow(() -> taskService.updateTaskStatus(task.getId(), requestDto));
         verify(taskRepository).save(task);
         assertEquals(TaskStatus.IN_PROGRESS, task.getStatus());
@@ -124,14 +123,13 @@ class TaskServiceImplTest {
     @Test
     @DisplayName("Update Task Status - Failure by Different User")
     void updateTaskStatus_WhenUserIsNotAssigned_ShouldThrowAccessDenied() {
-        // Arrange
-        when(securityUtils.getCurrentUser()).thenReturn(manager); // The MANAGER is logged in, but not assigned
+        when(securityUtils.getCurrentUser()).thenReturn(manager); 
         when(taskRepository.findById(anyLong())).thenReturn(Optional.of(task));
 
         UpdateTaskStatusRequestDto requestDto = new UpdateTaskStatusRequestDto();
         requestDto.setStatus(TaskStatus.IN_PROGRESS);
 
-        // Act & Assert
+        
         AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> taskService.updateTaskStatus(task.getId(), requestDto)
@@ -142,11 +140,11 @@ class TaskServiceImplTest {
     @Test
     @DisplayName("Get Task By ID - Not Found")
     void getTaskById_WhenTaskDoesNotExist_ShouldThrowEntityNotFoundException() {
-        // Arrange
+        
         long nonExistentId = 999L;
         when(taskRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // Act & Assert
+        
         assertThrows(
             EntityNotFoundException.class,
             () -> taskService.getTaskById(nonExistentId)

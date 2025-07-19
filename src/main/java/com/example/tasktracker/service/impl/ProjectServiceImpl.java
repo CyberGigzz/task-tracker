@@ -12,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-@Service // Marks this class as a Spring bean
-@RequiredArgsConstructor // Creates a constructor with all final fields
+@Service 
+@RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -22,7 +22,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponseDto createProject(CreateProjectRequestDto requestDto, User owner) {
         Project project = projectMapper.toModel(requestDto);
-        project.setOwner(owner); // Set the logged-in user as the owner
+        project.setOwner(owner); 
         Project savedProject = projectRepository.save(project);
         return projectMapper.toDto(savedProject);
     }
@@ -55,11 +55,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(Long id) {
         Project project = findProjectById(id);
-        // Note: In a real app, you might need to handle deleting associated tasks first.
         projectRepository.delete(project);
     }
     
-    // Private helper method to avoid code repetition
     private Project findProjectById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found with id: " + id));

@@ -18,7 +18,7 @@ import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j // Use a proper logger instead of System.out.println
+@Slf4j
 public class DataLoader implements CommandLineRunner {
 
     private final UserRepository userRepository;
@@ -26,10 +26,8 @@ public class DataLoader implements CommandLineRunner {
     private final TaskRepository taskRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // A single Random instance for all our needs
     private static final Random RANDOM = new Random();
 
-    // Configuration for how much data to generate
     private static final int NUM_MANAGERS = 2;
     private static final int NUM_USERS = 5;
     private static final int PROJECTS_PER_MANAGER = 3;
@@ -37,10 +35,8 @@ public class DataLoader implements CommandLineRunner {
     private static final int TASKS_PER_PROJECT_MAX = 5;
 
     @Override
-    @Transactional // Wrap the entire data loading process in a single transaction
+    @Transactional 
     public void run(String... args) throws Exception {
-        // Since we use an in-memory H2, this check is sufficient.
-        // On a persistent DB, we might check each repository.
         if (userRepository.count() > 0) {
             log.info("Database already contains data. Skipping initial data load.");
             return;
@@ -60,7 +56,6 @@ public class DataLoader implements CommandLineRunner {
         List<User> managers = new ArrayList<>();
         String hashedPassword = passwordEncoder.encode("password123");
 
-        // Create one Admin user
         User admin = new User("admin@example.com", hashedPassword, Role.ADMIN);
         managers.add(admin);
 
@@ -87,7 +82,6 @@ public class DataLoader implements CommandLineRunner {
         List<String> projectNouns = List.of("Phoenix", "Odyssey", "Titan", "Nova", "Orion");
         List<String> projectTypes = List.of("Initiative", "Platform", "Overhaul", "Migration", "Framework");
 
-        // Filter out the admin user, only get managers
         List<User> actualManagers = managers.stream().filter(u -> u.getRole() == Role.MANAGER).toList();
 
         for (User manager : actualManagers) {
@@ -117,9 +111,9 @@ public class DataLoader implements CommandLineRunner {
                 task.setDescription("Detailed description for this task goes here.");
                 task.setStatus(TaskStatus.values()[RANDOM.nextInt(TaskStatus.values().length)]);
                 task.setPriority(TaskPriority.values()[RANDOM.nextInt(TaskPriority.values().length)]);
-                task.setDueDate(LocalDate.now().plusDays(RANDOM.nextInt(30) - 7)); // Due from last week to next month
+                task.setDueDate(LocalDate.now().plusDays(RANDOM.nextInt(30) - 7)); 
                 task.setProject(project);
-                task.setAssignedUser(users.get(RANDOM.nextInt(users.size()))); // Assign to a random user
+                task.setAssignedUser(users.get(RANDOM.nextInt(users.size()))); 
                 tasks.add(task);
             }
         }

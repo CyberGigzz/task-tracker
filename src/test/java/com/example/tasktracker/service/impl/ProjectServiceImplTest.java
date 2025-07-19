@@ -23,16 +23,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class) // Integrates Mockito with JUnit 5
+@ExtendWith(MockitoExtension.class) 
 class ProjectServiceImplTest {
 
-    @Mock // Creates a mock instance of ProjectRepository
+    @Mock 
     private ProjectRepository projectRepository;
 
-    @Mock // Creates a mock instance of ProjectMapper
+    @Mock 
     private ProjectMapper projectMapper;
 
-    @InjectMocks // Creates an instance of ProjectServiceImpl and injects the mocks into it
+    @InjectMocks
     private ProjectServiceImpl projectService;
 
     private User manager;
@@ -40,9 +40,8 @@ class ProjectServiceImplTest {
     private Project project;
     private ProjectResponseDto projectResponseDto;
 
-    @BeforeEach // This method runs before each test
+    @BeforeEach 
     void setUp() {
-        // Initialize common test objects
         manager = new User("manager@test.com", "password", Role.MANAGER);
         manager.setId(1L);
 
@@ -64,60 +63,50 @@ class ProjectServiceImplTest {
     @Test
     @DisplayName("Create Project - Success")
     void createProject_WhenDataIsValid_ShouldReturnProjectResponseDto() {
-        // Arrange: Define the behavior of our mocks
         when(projectMapper.toModel(any(CreateProjectRequestDto.class))).thenReturn(project);
         
         Project savedProject = new Project();
-        savedProject.setId(10L); // Simulate the project after it's saved and has an ID
+        savedProject.setId(10L);
         savedProject.setName(project.getName());
         savedProject.setOwner(project.getOwner());
         when(projectRepository.save(any(Project.class))).thenReturn(savedProject);
         
         when(projectMapper.toDto(any(Project.class))).thenReturn(projectResponseDto);
 
-        // Act: Call the method we are testing
         ProjectResponseDto result = projectService.createProject(createProjectRequestDto, manager);
 
-        // Assert: Check if the result is what we expect
         assertNotNull(result);
         assertEquals("Test Project", result.getName());
         assertEquals(10L, result.getId());
-        verify(projectRepository).save(any(Project.class)); // Verify that the save method was called
+        verify(projectRepository).save(any(Project.class)); 
     }
 
     @Test
     @DisplayName("Get Project By ID - Not Found")
     void getProjectById_WhenProjectDoesNotExist_ShouldThrowEntityNotFoundException() {
-        // Arrange: Define the behavior of our mock
         long nonExistentId = 99L;
         when(projectRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-        // Act & Assert: Check that the correct exception is thrown
         EntityNotFoundException exception = assertThrows(
                 EntityNotFoundException.class,
                 () -> projectService.getProjectById(nonExistentId)
         );
 
         assertEquals("Project not found with id: " + nonExistentId, exception.getMessage());
-        verify(projectRepository).findById(nonExistentId); // Verify that findById was called
+        verify(projectRepository).findById(nonExistentId); 
     }
 
-    // ... (keep all the existing code: class definition, mocks, setUp method, existing tests) ...
 
     @Test
     @DisplayName("Get Project By ID - Success")
     void getProjectById_WhenProjectExists_ShouldReturnProjectResponseDto() {
-        // Arrange
         long existingId = 10L;
-        // Our project object from setUp doesn't have an ID, so let's set one for this test
         project.setId(existingId); 
         when(projectRepository.findById(existingId)).thenReturn(Optional.of(project));
         when(projectMapper.toDto(project)).thenReturn(projectResponseDto);
 
-        // Act
         ProjectResponseDto result = projectService.getProjectById(existingId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(projectResponseDto.getId(), result.getId());
         assertEquals(projectResponseDto.getName(), result.getName());
@@ -128,7 +117,6 @@ class ProjectServiceImplTest {
     @Test
     @DisplayName("Update Project - Success")
     void updateProject_WhenProjectExists_ShouldUpdateAndReturnDto() {
-        // Arrange
         long existingId = 10L;
         project.setId(existingId);
 
@@ -136,43 +124,31 @@ class ProjectServiceImplTest {
         updateRequest.setName("Updated Name");
         updateRequest.setDescription("Updated Description.");
 
-        // When findById is called, return our existing project
         when(projectRepository.findById(existingId)).thenReturn(Optional.of(project));
-        // When save is called, just return the project that was passed in
         when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> invocation.getArgument(0));
         
-        // Mock the DTO mapping
         ProjectResponseDto updatedDto = new ProjectResponseDto();
         updatedDto.setId(existingId);
         updatedDto.setName("Updated Name");
         when(projectMapper.toDto(any(Project.class))).thenReturn(updatedDto);
 
-        // Act
         ProjectResponseDto result = projectService.updateProject(existingId, updateRequest);
 
-        // Assert
         assertNotNull(result);
-        assertEquals("Updated Name", result.getName()); // Check that the name was updated
+        assertEquals("Updated Name", result.getName()); 
         verify(projectRepository).findById(existingId);
-        verify(projectRepository).save(any(Project.class)); // Verify that save was called
+        verify(projectRepository).save(any(Project.class)); 
     }
 
     @Test
     @DisplayName("Delete Project - Success")
     void deleteProject_WhenProjectExists_ShouldCallDelete() {
-        // Arrange
         long existingId = 10L;
         project.setId(existingId);
-        // We use the helper method findProjectById in the service, so we must mock the findById call
         when(projectRepository.findById(existingId)).thenReturn(Optional.of(project));
         
-        // Act
-        // The delete method returns void, so we just call it.
-        // We use assertDoesNotThrow to ensure no exceptions are thrown.
         assertDoesNotThrow(() -> projectService.deleteProject(existingId));
 
-        // Assert
-        // Verify that the delete method on the repository was called with our project object.
         verify(projectRepository).delete(project);
     }
 }
